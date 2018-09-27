@@ -111,7 +111,7 @@ contract KyberNetworkWrapper is
         address[] memory componentTokensReceived = new address[](_tradeCount);
         uint256[] memory componentTokensAmounts = new uint256[](_tradeCount);
 
-        // Prase and execute the trade at the current offset via the KyberNetworkProxy, each kyber trade is 160 bytes
+        // Parse and execute the trade at the current offset via the KyberNetworkProxy, each kyber trade is 160 bytes
         for (uint256 i = 0; i < _tradeCount; i++) {
             (componentTokensReceived[i], componentTokensAmounts[i]) = tradeOnKyberReserve(
                 _tradesData,
