@@ -93,6 +93,8 @@ contract('ZeroExExchangeWrapper', accounts => {
   describe('#exchange', async () => {
     let subjectMakerAccount: Address;
     let subjectTakerAccount: Address;
+    let subjectMakerTokenAddress: Address;
+    let subjectMakerTokenAmount: BigNumber;
     let subjectOrderCount: BigNumber;
     let subjectOrderData: Bytes;
 
@@ -148,6 +150,8 @@ contract('ZeroExExchangeWrapper', accounts => {
 
       subjectMakerAccount = issuanceOrderMakerAccount;
       subjectTakerAccount = issuanceOrderAndZeroExOrderTakerAccount;
+      subjectMakerTokenAddress = zeroExOrderTakerToken.address;
+      subjectMakerTokenAmount = takerAssetAmount;
       subjectOrderCount = new BigNumber(1);
       subjectOrderData = zeroExExchangeWrapperOrder;
     });
@@ -156,8 +160,11 @@ contract('ZeroExExchangeWrapper', accounts => {
       return zeroExExchangeWrapper.exchange.sendTransactionAsync(
         subjectMakerAccount,
         subjectTakerAccount,
+        subjectMakerTokenAddress,
+        subjectMakerTokenAmount,
         subjectOrderCount,
-        subjectOrderData
+        subjectOrderData,
+        { from: deployerAccount },
       );
     }
 
@@ -321,6 +328,8 @@ contract('ZeroExExchangeWrapper', accounts => {
         return zeroExExchangeWrapper.exchange.callAsync(
           subjectMakerAccount,
           subjectTakerAccount,
+          subjectMakerTokenAddress,
+          subjectMakerTokenAmount,
           subjectOrderCount,
           subjectOrderData,
           { from: deployerAccount },

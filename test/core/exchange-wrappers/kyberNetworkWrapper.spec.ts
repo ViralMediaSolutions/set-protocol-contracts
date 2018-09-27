@@ -64,6 +64,8 @@ contract('KyberNetworkWrapper', accounts => {
     let subjectCaller: Address;
     let subjectMaker: Address;
     let subjectTaker: Address;
+    let subjectMakerTokenAddress: Address;
+    let subjectMakerTokenAmount: BigNumber;
     let subjectTradesCount: BigNumber;
     let subjectTradesData: Bytes;
 
@@ -107,6 +109,8 @@ contract('KyberNetworkWrapper', accounts => {
       subjectCaller = authorizedAddress;
       subjectMaker = issuanceOrderMakerAccount;
       subjectTaker = takerAccount;
+      subjectMakerTokenAddress = sourceToken.address;
+      subjectMakerTokenAmount = sourceTokenQuantity;
       subjectTradesCount = new BigNumber(1);
       subjectTradesData = ethUtil.bufferToHex(setUtils.kyberTradeToBuffer(kyberTrade));
     });
@@ -115,6 +119,8 @@ contract('KyberNetworkWrapper', accounts => {
       return kyberNetworkWrapper.exchange.sendTransactionAsync(
         subjectMaker,
         subjectTaker,
+        subjectMakerTokenAddress,
+        subjectMakerTokenAmount,
         subjectTradesCount,
         subjectTradesData,
         { from: subjectCaller, gas: DEFAULT_GAS },
