@@ -21,7 +21,8 @@ import {
   SetTokenFactoryContract,
   StandardTokenMockContract,
   TransferProxyContract,
-  VaultContract
+  VaultContract,
+  ZeroExExchangeWrapperContract,
 } from '@utils/contracts';
 import { ether } from '@utils/units';
 import { assertTokenBalanceAsync, expectRevertError } from '@utils/tokenAssertions';
@@ -59,6 +60,7 @@ contract('CoreIssuanceOrder', accounts => {
   let transferProxy: TransferProxyContract;
   let vault: VaultContract;
   let setTokenFactory: SetTokenFactoryContract;
+  let zeroExExchangeWrapper: ZeroExExchangeWrapperContract;
 
   const coreWrapper = new CoreWrapper(contractDeployer, contractDeployer);
   const erc20Wrapper = new ERC20Wrapper(contractDeployer);
@@ -123,7 +125,7 @@ contract('CoreIssuanceOrder', accounts => {
 
     beforeEach(async () => {
       await exchangeWrapper.deployAndAuthorizeTakerWalletExchangeWrapper(transferProxy, core);
-      await exchangeWrapper.deployAndAuthorizeZeroExExchangeWrapper(
+      zeroExExchangeWrapper = await exchangeWrapper.deployAndAuthorizeZeroExExchangeWrapper(
         SetTestUtils.ZERO_EX_EXCHANGE_ADDRESS,
         SetTestUtils.ZERO_EX_ERC20_PROXY_ADDRESS,
         transferProxy,
@@ -657,7 +659,16 @@ contract('CoreIssuanceOrder', accounts => {
       before(async () => {
         makerTokenAmountToUseOnZeroExOrderAsFillAmount = ether(11);
         issuanceOrderMakerTokenAmount = ether(10);
-        makerTokenAmountToUseAcrossLiqudityOrders = ether(11);
+        makerTokenAmountToUseAcrossLiqudityOrders = ether(10);
+      });
+
+      beforeEach(async () => {
+        await erc20Wrapper.transferTokenAsync(
+          makerToken,
+          zeroExExchangeWrapper.address,
+          ether(1),
+          issuanceOrderMaker,
+        );
       });
 
       after(async () => {
