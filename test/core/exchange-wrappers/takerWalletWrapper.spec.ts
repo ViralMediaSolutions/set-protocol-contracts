@@ -94,8 +94,6 @@ contract('TakerWalletWrapper', accounts => {
       subjectMakerTokenAmount = ZERO;
       subjectOrderCount = new BigNumber(componentAddresses.length);
       subjectTakerOrdersData = generateTakerWalletOrders(componentAddresses, transferAmounts);
-
-      console.log(subjectTakerOrdersData);
     });
 
     async function subject(): Promise<string> {

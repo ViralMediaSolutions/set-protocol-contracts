@@ -21,8 +21,7 @@ import {
   SetTokenFactoryContract,
   StandardTokenMockContract,
   TransferProxyContract,
-  VaultContract,
-  ZeroExExchangeWrapperContract,
+  VaultContract
 } from '@utils/contracts';
 import { ether } from '@utils/units';
 import { assertTokenBalanceAsync, expectRevertError } from '@utils/tokenAssertions';
@@ -60,7 +59,6 @@ contract('CoreIssuanceOrder', accounts => {
   let transferProxy: TransferProxyContract;
   let vault: VaultContract;
   let setTokenFactory: SetTokenFactoryContract;
-  let zeroExExchangeWrapper: ZeroExExchangeWrapperContract;
 
   const coreWrapper = new CoreWrapper(contractDeployer, contractDeployer);
   const erc20Wrapper = new ERC20Wrapper(contractDeployer);
@@ -119,13 +117,12 @@ contract('CoreIssuanceOrder', accounts => {
 
     let zeroExOrder: ZeroExSignedFillOrder;
     let makerTokenAmountToUseOnZeroExOrderAsFillAmount: BigNumber;
-    let makerTokenAmountToUseAcrossLiqudityOrders: BigNumber;
     let takerWalletOrder: TakerWalletOrder;
     let takerWalletOrderComponentAmount: BigNumber;
 
     beforeEach(async () => {
       await exchangeWrapper.deployAndAuthorizeTakerWalletExchangeWrapper(transferProxy, core);
-      zeroExExchangeWrapper = await exchangeWrapper.deployAndAuthorizeZeroExExchangeWrapper(
+      await exchangeWrapper.deployAndAuthorizeZeroExExchangeWrapper(
         SetTestUtils.ZERO_EX_EXCHANGE_ADDRESS,
         SetTestUtils.ZERO_EX_ERC20_PROXY_ADDRESS,
         transferProxy,
@@ -179,7 +176,7 @@ contract('CoreIssuanceOrder', accounts => {
         relayerToken:             relayerToken.address,                                     // relayerToken
         quantity:                 quantity                      || ether(4),                // quantity
         makerTokenAmount:         issuanceOrderMakerTokenAmount || ether(10),               // makerTokenAmount
-        expiration:               issuanceOrderExpiration       || SetUtils.generateTimestamp(10000), // expiration
+        expiration:               issuanceOrderExpiration       || SetTestUtils.generateTimestamp(10000), // expiration
         makerRelayerFee:          issuanceOrderMakerRelayerFee  || ether(3),                // makerRelayerFee
         takerRelayerFee:          issuanceOrderTakerRelayerFee  || ZERO,                    // takerRelayerFee
         requiredComponents:       requiredComponents,                                       // requiredComponents
@@ -197,19 +194,19 @@ contract('CoreIssuanceOrder', accounts => {
 
       const zeroExOrderTakerAssetAmount = order.makerTokenAmount.div(4);
       zeroExOrder = await setUtils.generateZeroExSignedFillOrder(
-        NULL_ADDRESS,                                   // senderAddress
-        zeroExOrderMaker,                               // makerAddress
-        NULL_ADDRESS,                                   // takerAddress
-        ZERO,                                           // makerFee
-        ZERO,                                           // takerFee
-        requiredComponentAmounts[1],                    // makerAssetAmount
-        zeroExOrderTakerAssetAmount,                    // takerAssetAmount
-        secondComponent.address,                        // makerAssetAddress
-        makerToken.address,                             // takerAssetAddress
-        SetUtils.generateSalt(),                        // salt
-        SetTestUtils.ZERO_EX_EXCHANGE_ADDRESS,          // exchangeAddress
-        NULL_ADDRESS,                                   // feeRecipientAddress
-        SetUtils.generateTimestamp(10000),              // expirationTimeSeconds
+        NULL_ADDRESS,                                     // senderAddress
+        zeroExOrderMaker,                                 // makerAddress
+        NULL_ADDRESS,                                     // takerAddress
+        ZERO,                                             // makerFee
+        ZERO,                                             // takerFee
+        requiredComponentAmounts[1],                      // makerAssetAmount
+        zeroExOrderTakerAssetAmount,                      // takerAssetAmount
+        secondComponent.address,                          // makerAssetAddress
+        makerToken.address,                               // takerAssetAddress
+        SetUtils.generateSalt(),                          // salt
+        SetTestUtils.ZERO_EX_EXCHANGE_ADDRESS,            // exchangeAddress
+        NULL_ADDRESS,                                     // feeRecipientAddress
+        SetTestUtils.generateTimestamp(10000),            // expirationTimeSeconds
         makerTokenAmountToUseOnZeroExOrderAsFillAmount || zeroExOrderTakerAssetAmount, // amount of zeroExOrder to fill
       );
 
@@ -233,10 +230,7 @@ contract('CoreIssuanceOrder', accounts => {
       subjectQuantityToFill = order.quantity;
       subjectVSignature = new BigNumber(signature.v);
       subjectSigBytes = [signature.r, signature.s];
-      subjectExchangeOrdersData = setUtils.generateSerializedOrders(
-        makerTokenAmountToUseAcrossLiqudityOrders || zeroExOrderTakerAssetAmount,
-        [zeroExOrder, takerWalletOrder]
-      );
+      subjectExchangeOrdersData = setUtils.generateSerializedOrders([zeroExOrder, takerWalletOrder]);
       subjectCaller = issuanceOrderTaker;
     });
 
@@ -655,26 +649,15 @@ contract('CoreIssuanceOrder', accounts => {
       });
     });
 
-    describe('when the maker token required for the 0x order is more than the signed amount', async () => {
+    describe('when the 0x order uses more maker token than the signed amount', async () => {
       before(async () => {
         makerTokenAmountToUseOnZeroExOrderAsFillAmount = ether(11);
         issuanceOrderMakerTokenAmount = ether(10);
-        makerTokenAmountToUseAcrossLiqudityOrders = ether(10);
-      });
-
-      beforeEach(async () => {
-        await erc20Wrapper.transferTokenAsync(
-          makerToken,
-          zeroExExchangeWrapper.address,
-          ether(1),
-          issuanceOrderMaker,
-        );
       });
 
       after(async () => {
         issuanceOrderMakerTokenAmount = undefined;
         makerTokenAmountToUseOnZeroExOrderAsFillAmount = undefined;
-        makerTokenAmountToUseAcrossLiqudityOrders = undefined;
       });
 
       it('should revert', async () => {
@@ -755,7 +738,7 @@ contract('CoreIssuanceOrder', accounts => {
         relayerToken:             relayerToken.address,                                     // relayerToken
         quantity:                 quantity                      || ether(4),                // quantity
         makerTokenAmount:         issuanceOrderMakerTokenAmount || ether(10),               // makerTokenAmount
-        expiration:               issuanceOrderExpiration       || SetUtils.generateTimestamp(10000), // expiration
+        expiration:               issuanceOrderExpiration       || SetTestUtils.generateTimestamp(10000), // expiration
         makerRelayerFee:          issuanceOrderMakerRelayerFee,                             // makerRelayerFee
         takerRelayerFee:          issuanceOrderTakerRelayerFee,                             // takerRelayerFee
         requiredComponents:       requiredComponents,                                       // requiredComponents
