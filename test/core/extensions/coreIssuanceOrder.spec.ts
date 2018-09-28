@@ -88,7 +88,7 @@ contract('CoreIssuanceOrder', accounts => {
     await blockchain.revertAsync();
   });
 
-  describe.only('#fillOrder', async () => {
+  describe('#fillOrder', async () => {
     let subjectCaller: Address;
     let subjectAddresses: Address[];
     let subjectValues: BigNumber[];
@@ -674,22 +674,27 @@ contract('CoreIssuanceOrder', accounts => {
           SetTestUtils.generateTimestamp(10000),            // expirationTimeSeconds
           zeroExOrderTakerAssetAmount,                      // amount of 0x order to fill
         );
-        const zeroExOrderBuffer: Buffer[] = SetTestUtils.zeroExSignedFillOrderToBuffer(invalidZeroExOrder);
+        const zeroExOrderBuffer: Buffer = Buffer.concat(
+          SetTestUtils.zeroExSignedFillOrderToBuffer(invalidZeroExOrder)
+        );
 
         const exchangeHeaderOrderCount = 1;
         const exchangeHeaderMakerTokenAmount = zeroExOrderTakerAssetAmount;
         const exchangeHeaderTotalOrderBodyLength = zeroExOrderBuffer.length;
-        const zeroExOrdersExchangeHeader = SetTestUtils.generateExchangeOrderHeader(
-          SetUtils.EXCHANGES.ZERO_EX,
-          exchangeHeaderOrderCount,
-          exchangeHeaderMakerTokenAmount,
-          exchangeHeaderTotalOrderBodyLength,
+        const zeroExOrdersExchangeHeader = Buffer.concat(
+          SetTestUtils.generateExchangeOrderHeader(
+            SetUtils.EXCHANGES.ZERO_EX,
+            exchangeHeaderOrderCount,
+            exchangeHeaderMakerTokenAmount,
+            exchangeHeaderTotalOrderBodyLength,
+          )
+         );
+
+        subjectExchangeOrdersData = ethUtil.bufferToHex(
+          Buffer.concat([zeroExOrdersExchangeHeader, zeroExOrderBuffer])
         );
 
-        subjectExchangeOrdersData = ethUtil.bufferToHex(Buffer.concat([
-          Buffer.concat(zeroExOrdersExchangeHeader),
-          Buffer.concat(zeroExOrderBuffer),
-        ]));
+        console.log(subjectExchangeOrdersData);
       });
 
       it('should revert', async () => {

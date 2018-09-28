@@ -100,7 +100,7 @@ contract KyberNetworkWrapper is
         onlyAuthorized
         returns (address[], uint256[])
     {
-        // Ensure the source token is allowed to be transferred by KyberNetworkProxy
+        // Ensure the issuance order maker token is allowed to be transferred by KyberNetworkProxy as the source token
         ERC20.ensureAllowance(
             _makerToken,
             address(this),
@@ -168,7 +168,7 @@ contract KyberNetworkWrapper is
             0
         );
 
-        // Ensure the maker token is allowed to be transferred by Set TransferProxy
+        // Ensure the destination token is allowed to be transferred by Set TransferProxy
         ERC20.ensureAllowance(
             trade.destinationToken,
             address(this),
